@@ -1,0 +1,6 @@
+ls -1 *t4d >> trant;
+while read filename; 
+do 
+    newfile=`echo "$filename" | sed "s/$/s1/g"`;
+    cp "$filename" ../"$newfile"; 
+done < trant
