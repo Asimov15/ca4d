@@ -30,4 +30,4 @@ ca3dbase.o: ca3dbase.cpp shared.h color.h vector.h cursor.h spaceNd.h ca3dbase.h
 	$(CC) $(CFLAGS) ca3dbase.cpp
 
 clean:
-	rm -rf *.o *.h.gch conway
+	rm -rf *.o conway
