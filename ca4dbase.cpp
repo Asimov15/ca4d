@@ -55,14 +55,9 @@ void ca4Dbase::initspace2(unsigned int size, bool wrap)
 		ordinates[0] = x;
 		ordinates[1] = y;
 		ordinates[2] = z;
-		ordinates[3] = w;
-		ordinates[0] = x + 7;
-		ordinates[1] = y + 7;
-		ordinates[2] = z + 7;
-		ordinates[3] = w + 7;												
+		ordinates[3] = w;									
 		space->setCell(ordinates, 1);	
 	}
-	
 	
 	space->swap();
 }
