@@ -15,6 +15,6 @@ class color
 		
 		~color()
 		{		
-			delete rgb;
+			delete[] rgb;
 		}
 };

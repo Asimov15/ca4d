@@ -117,27 +117,28 @@ void spaceNd::initializeAdjacencies()
 		}
 	}
 
-	delete ordinates;
-	delete adjacencyRelativeOrdinates;
-	delete adjacencyOrdinates;
-	delete minimumExtents;
-	delete minimumRelativeAdjacent;
-	delete maximumRelativeAdjacent;
+	delete[] ordinates;
+	delete[] adjacencyRelativeOrdinates;
+	delete[] adjacencyOrdinates;
+	delete[] minimumExtents;
+	delete[] minimumRelativeAdjacent;
+	delete[] maximumRelativeAdjacent;
 }
 
 
 spaceNd::~spaceNd()
 {
-	delete buffer;
+	delete[] buffer;
 
 	for (int i = 0; i < matrixSize * 2; i++)
 	{
-		delete cellAdjacencies[i];
+		delete[] cellAdjacencies[i];
 	}
 
-	delete cellAdjacencies;
+	delete[] cellAdjacencies;
 
-	delete dimensionProducts;
+	delete[] dimensionProducts;
+	delete[] extents;
 }
 
 inline int spaceNd::getIndex(int* ordinates, bool useSwapped, bool check)

@@ -566,7 +566,7 @@ void ca4Dbase::render()
 	color* custom;
 	vector d(0, 0, 0);
 	vector ep(0, 0, 0);
-
+	
 	custom = new color(0.4, 1.0, 0.2, 1.0);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0); 						//clear the screen to black
@@ -590,39 +590,42 @@ void ca4Dbase::render()
 	for (float x = 0; x < space->extents[0]; x++)
 		for (float y = 0; y < space->extents[1]; y++)
 			for (float z = 0; z < space->extents[2]; z++)
-				//for (float w = 0; w < space->extents[3]; w++)
+			{
+				int count = 0;
+				for (float w = 0; w < space->extents[3]; w++)
 				{
 					ordinates[0] = x;
 					ordinates[1] = y;
 					ordinates[2] = z;
-					//ordinates[3] = 0;
-					ordinates[3] = space->extents[3] / 2;
-
-					unsigned char state = space->getCell(ordinates);
-					if (state == 1) 
-					{
-						float r = (x / space->extents[0]) *.8 + .1;
-						float g = (y / space->extents[1]) *.8 + .1;
-						float b = (z / space->extents[2]) *.8 + .1;
-						custom->rgb[0] = r;
-						custom->rgb[1] = g;
-						custom->rgb[2] = b;
-						//custom->rgb[0] = 1.0;
-						//custom->rgb[1] = 1.0;
-						//custom->rgb[2] = 1.0;
-						custom->alpha = 0.8;						
-
-						d.x = x / 10.0 - (float)space->extents[0] / 20;
-						d.y = y / 10.0 - (float)space->extents[1] / 20;
-						d.z = z / 10.0 - (float)space->extents[2] / 20;
-
-						//d.x += (w - (space->extents[3] / 2));
-
-						mycursor->moveabs(&d);
-						mycursor->setcolor(custom);
-						mycursor->pset();
-					}
+					ordinates[3] = w;
+					if (space->getCell(ordinates) == 1)
+						count++;
 				}
+				// ordinates[3] = space->extents[3] / 2;
+
+				// unsigned char state = space->getCell(ordinates);
+				
+				float intensity = (float)count / space->extents[3];
+				float r = 0.0f;
+				float g = 0.0f;
+				// float b = 1.0f;
+				custom->rgb[0] = r;
+				custom->rgb[1] = g;
+				custom->rgb[2] = intensity;
+
+				custom->alpha = 0.8;						
+
+				d.x = x / 10.0 - (float)space->extents[0] / 20;
+				d.y = y / 10.0 - (float)space->extents[1] / 20;
+				d.z = z / 10.0 - (float)space->extents[2] / 20;
+
+				//d.x += (w - (space->extents[3] / 2));
+
+				mycursor->moveabs(&d);
+				mycursor->setcolor(custom);
+				mycursor->pset();
+				
+			}
 
 	//std::stringstream ss;
 	//ss << turn;
