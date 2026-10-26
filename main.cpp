@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	
 	//ca4Dbase* ca = new conway4D(1, 4, 15, 20, 17, true); // ***
 	
-	ca4Dbase* ca = new conway4D(2, 5, 15, 20, 17, true); // ***
+	ca4Dbase* ca = new conway4D(2, 5, 15, 20, 20, true); // ***
 	
 	//ca4Dbase* ca = new conway4D(1,4, 10, 20, 20, true); // vi
 	
