@@ -21,7 +21,7 @@
 using namespace std;
 
 #include "color.h"
-#include "vector.h"
+#include "Vector3D.h"
 #include "cursor.h"
 #include "spaceNd.h"
 #include "ca3dbase.h"

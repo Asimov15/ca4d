@@ -80,6 +80,7 @@ class ca4Dbase
 		double xloc, yloc, zloc;
 		double xpos, ypos, zpos;
 		void keyboard(unsigned char key, int x, int y);
+		void injectPerturbation();
 };
 
 

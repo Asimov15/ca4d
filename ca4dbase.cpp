@@ -446,6 +446,8 @@ void ca4Dbase::initspace15(unsigned int size, bool wrap)
 
 void ca4Dbase::initspace16(unsigned int size, bool wrap)
 {
+    const bool ENABLE_PERTURBATION = false;
+    
     // Create the four-dimensional cellular space
     int extents[4] = 
     {
@@ -476,11 +478,27 @@ void ca4Dbase::initspace16(unsigned int size, bool wrap)
         ordinates[2] = z;
         ordinates[3] = w;
 
-        if (active(rng))
-        {
-            space->setCell(ordinates, 1);
-            initialCount++;
-        }
+        // Random background
+		bool alive = active(rng);
+
+		// Four-dimensional central perturbation
+		int centre = size / 2;
+
+		bool centralSeed =
+			(x >= centre - 2 && x < centre + 2) &&
+			(y >= centre - 2 && y < centre + 2) &&
+			(z >= centre - 2 && z < centre + 2) &&
+			(w >= centre - 2 && w < centre + 2);
+
+		// Force all cells in the central hypercube to be active
+		if (ENABLE_PERTURBATION && centralSeed)
+			alive = true;
+
+		if (alive)
+		{
+			space->setCell(ordinates, 1);
+			initialCount++;
+		}
     }
 
     space->swap();
@@ -581,8 +599,8 @@ void ca4Dbase::initgraphics()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteDiffuseLight);
 
 	double radius(0.05);
-	vector* position2 = new vector(0, 0, 0);
-	vector* orient2 = new vector(1, 0, 0);
+	Vector3D* position2 = new Vector3D(0, 0, 0);
+	Vector3D* orient2 = new Vector3D(1, 0, 0);
 	color* blue = new color(0.0, 0.0, 1.0, 1.0);
 	color* white = new color(0.0, 0.0, 0.0, 1.0);
 	GLfloat* shine = new float(128.0f);
@@ -612,10 +630,17 @@ void ca4Dbase::taketurn()
         
         exit(0);
     }
-    
+    if (turn == 100)
+	{
+	    injectPerturbation();
+	
+	    printf("Perturbation injected at generation %d\n",
+	           turn);
+	}
     // Record the current generation
     logGeneration();
     logRadialGeneration();
+
 	
 	// Render the same generation
 	render();
@@ -871,8 +896,8 @@ void ca4Dbase::stopRadialLogging()
 void ca4Dbase::render()
 {
 	color* custom;
-	vector d(0, 0, 0);
-	vector ep(0, 0, 0);
+	Vector3D d(0, 0, 0);
+	Vector3D ep(0, 0, 0);
 	
 	custom = new color(0.4, 1.0, 0.2, 1.0);
 
@@ -1026,6 +1051,34 @@ int ca4Dbase::run(int argc, char **argv)
     glutMainLoop();
 
     return 0;
+}
+
+void ca4Dbase::injectPerturbation()
+{
+    const int centre = space->extents[0] / 2;
+
+    int ordinates[4];
+    int activated = 0;
+
+    for (int x = centre - 2; x < centre + 2; x++)
+    for (int y = centre - 2; y < centre + 2; y++)
+    for (int z = centre - 2; z < centre + 2; z++)
+    for (int w = centre - 2; w < centre + 2; w++)
+    {
+        ordinates[0] = x;
+        ordinates[1] = y;
+        ordinates[2] = z;
+        ordinates[3] = w;
+
+        if (space->getCell(ordinates) == 0)
+        {
+            space->setCurrentCell(ordinates, 1);
+            activated++;
+        }
+    }
+
+    printf("Perturbation: %d additional cells activated\n",
+           activated);
 }
 
 //void ca4Dbase::start()

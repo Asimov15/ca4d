@@ -857,8 +857,8 @@ void ca3Dbase::initgraphics()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteDiffuseLight);
 
 	double radius(0.05);
-	vector* position2 = new vector(0, 0, 0);
-	vector* orient2 = new vector(1, 0, 0);
+	Vector3D* position2 = new Vector3D(0, 0, 0);
+	Vector3D* orient2 = new Vector3D(1, 0, 0);
 	color* blue = new color(0.0, 0.0, 1.0, 1.0);
 	color* white = new color(0.0, 0.0, 0.0, 1.0);
 	GLfloat* shine = new float(128.0f);
@@ -925,8 +925,8 @@ void drawString(void * font, char *s, float x, float y, float z){
 void ca3Dbase::render()
 {	
 	color* custom;
-	vector d(0, 0, 0);
-	vector ep(0, 0, 0);
+	Vector3D d(0, 0, 0);
+	Vector3D ep(0, 0, 0);
 	
 	custom = new color(0.4, 1.0, 0.2, 1.0);
 	

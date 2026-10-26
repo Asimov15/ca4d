@@ -195,6 +195,11 @@ void spaceNd::setCell(int* ordinates, unsigned char newState)
 	buffer[getIndex(ordinates, !isSwapped)] = newState;
 }
 
+void spaceNd::setCurrentCell(int* ordinates, unsigned char newState)
+{
+    buffer[getIndex(ordinates, isSwapped)] = newState;
+}
+
 void spaceNd::swap()
 {
 	isSwapped = !isSwapped;

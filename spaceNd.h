@@ -26,7 +26,7 @@ public:
 
 	inline int getIndex(int index, bool useSwapped);
 
-
+	void setCurrentCell(int* ordinates, unsigned char newState);
 
 	spaceNd(int dimensions, int* extents, bool wrap = true);
 

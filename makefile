@@ -11,22 +11,22 @@ all: conway
 conway: ca4dbase.o conway4d.o main.o spaceNd.o ca3dbase.o conway3d.o 
 	$(CC)  ca4dbase.o ca3dbase.o conway3d.o conway4d.o main.o spaceNd.o -o conway $(CFLAGSLINK)
 
-conway4d.o: conway4d.cpp shared.h color.h vector.h cursor.h spaceNd.h conway4d.h  
+conway4d.o: conway4d.cpp shared.h color.h Vector3D.h cursor.h spaceNd.h conway4d.h  
 	$(CC) $(CFLAGS) conway4d.cpp
 
-conway3d.o: conway3d.cpp shared.h color.h vector.h cursor.h spaceNd.h conway3d.h
+conway3d.o: conway3d.cpp shared.h color.h Vector3D.h cursor.h spaceNd.h conway3d.h
 	$(CC) $(CFLAGS) conway3d.cpp
 	
-spaceNd.o: spaceNd.cpp shared.h color.h vector.h cursor.h spaceNd.h ca4dbase.h conway4d.h
+spaceNd.o: spaceNd.cpp shared.h color.h Vector3D.h cursor.h spaceNd.h ca4dbase.h conway4d.h
 	$(CC) $(CFLAGS) spaceNd.cpp
 	
-main.o: main.cpp shared.h color.h vector.h cursor.h spaceNd.h conway4d.h conway3d.h ca3dbase.h
+main.o: main.cpp shared.h color.h Vector3D.h cursor.h spaceNd.h conway4d.h conway3d.h ca3dbase.h
 	$(CC) $(CFLAGS) main.cpp
 
-ca4dbase.o: ca4dbase.cpp shared.h color.h vector.h cursor.h spaceNd.h ca4dbase.h 
+ca4dbase.o: ca4dbase.cpp shared.h color.h Vector3D.h cursor.h spaceNd.h ca4dbase.h 
 	$(CC) $(CFLAGS) ca4dbase.cpp
 	
-ca3dbase.o: ca3dbase.cpp shared.h color.h vector.h cursor.h spaceNd.h ca3dbase.h 
+ca3dbase.o: ca3dbase.cpp shared.h color.h Vector3D.h cursor.h spaceNd.h ca3dbase.h 
 	$(CC) $(CFLAGS) ca3dbase.cpp
 
 clean:

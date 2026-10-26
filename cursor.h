@@ -5,12 +5,12 @@ class cursor
 		color* acolor;
 		color* specular;
 		double radius;
-		vector* pos;
+		Vector3D* pos;
 		GLfloat* shine;
-		vector* orientation;
+		Vector3D* orientation;
 		double length;
 		
-		cursor(color* c, color* sp, double r, vector* d, GLfloat* sh, vector* o)
+		cursor(color* c, color* sp, double r, Vector3D* d, GLfloat* sh, Vector3D* o)
 		{
 			acolor   = c;
 			specular = sp;
@@ -34,12 +34,12 @@ class cursor
 			acolor = x;
 		}			
 		
-		void linerel(vector* disp)
+		void linerel(Vector3D* disp)
 		{
 			int i;
 			double m;
-			vector* temp2;
-			vector* temp1;
+			Vector3D* temp2;
+			Vector3D* temp1;
 			orientation = disp;
 			m = disp->mag();			
 			orientation->scalarp(1 / m);
@@ -63,7 +63,7 @@ class cursor
 							
 		}		
 		
-		void moveabs(vector* dest)
+		void moveabs(Vector3D* dest)
 		{			
 			pos->x = dest->x;			
 			pos->y = dest->y;			
@@ -71,9 +71,9 @@ class cursor
 			
 		}
 		
-		void moverel(vector* disp)
+		void moverel(Vector3D* disp)
 		{			
-			vector* temp2;
+			Vector3D* temp2;
 			temp2 = pos;
 			pos = temp2->vadd(disp);		
 			//delete temp2;
@@ -81,8 +81,8 @@ class cursor
 		
 		void pset()
 		{			
-			vector* orth;
-			vector* unitx = new vector(1, 0, 0);
+			Vector3D* orth;
+			Vector3D* unitx = new Vector3D(1, 0, 0);
 			double rotang;
 			const double degs = 360/(2 * 3.14f);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, acolor->rgb);
