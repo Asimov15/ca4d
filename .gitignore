@@ -1,2 +1,13 @@
 *.o
 conway
+# Simulation videos
+*.mp4
+
+# LibreOffice temporary files
+.~lock.*
+
+# Local analysis spreadsheets
+*.ods
+
+# Local experiment results
+results/
