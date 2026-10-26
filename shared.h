@@ -14,6 +14,9 @@
 #include <sstream>
 #include <cstring>
 #include <unistd.h>
+#include <algorithm>
+#include <cstdio>
+#include <random>
 
 using namespace std;
 

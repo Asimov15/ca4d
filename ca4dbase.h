@@ -24,6 +24,13 @@ class ca4Dbase
     void logGeneration();
     void stopDataLogging();
 	
+	// Radial population analysis
+	FILE* radialFile = nullptr;
+
+	void startRadialLogging();
+	void logRadialGeneration();
+	void stopRadialLogging();
+	
 	public:
 		ca4Dbase(unsigned int size = 50, bool wrap = true);
 		~ca4Dbase();
@@ -48,6 +55,7 @@ class ca4Dbase
 		void initspace12(unsigned int size = 50, bool wrap = true);
 		void initspace14(unsigned int size = 50, bool wrap = true);
 		void initspace15(unsigned int size = 50, bool wrap = true);
+		void initspace16(unsigned int size, bool wrap);
 		spaceNd* space;
 		void taketurn();
 		void mutateall();

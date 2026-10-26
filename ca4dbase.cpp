@@ -3,6 +3,7 @@
 // This is for directly outputing to an mp4
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 ca4Dbase* ca4Dglobal::CurrentCA;
 
@@ -443,6 +444,51 @@ void ca4Dbase::initspace15(unsigned int size, bool wrap)
 	space->swap();	
 }
 
+void ca4Dbase::initspace16(unsigned int size, bool wrap)
+{
+    // Create the four-dimensional cellular space
+    int extents[4] = 
+    {
+        static_cast<int>(size),
+        static_cast<int>(size),
+        static_cast<int>(size),
+        static_cast<int>(size)
+    };
+
+    space = new spaceNd(4, extents, wrap);
+
+    // Fixed seed ensures reproducible experiments
+    std::mt19937 rng(12345);
+
+    // Each cell has a 20% probability of being active
+    std::bernoulli_distribution active(0.20);
+
+    int ordinates[4];
+    int initialCount = 0;
+
+    for (int x = 0; x < static_cast<int>(size); x++)
+    for (int y = 0; y < static_cast<int>(size); y++)
+    for (int z = 0; z < static_cast<int>(size); z++)
+    for (int w = 0; w < static_cast<int>(size); w++)
+    {
+        ordinates[0] = x;
+        ordinates[1] = y;
+        ordinates[2] = z;
+        ordinates[3] = w;
+
+        if (active(rng))
+        {
+            space->setCell(ordinates, 1);
+            initialCount++;
+        }
+    }
+
+    space->swap();
+
+    printf("Initial active cells: %d\n", initialCount);
+    printf("Initial occupancy: %.4f%%\n",
+           100.0 * initialCount / space->matrixSize);
+}
 
 void ca4Dbase::initspace6(unsigned int size, bool wrap)
 {
@@ -562,11 +608,14 @@ void ca4Dbase::taketurn()
     {
         stopRecording();
         stopDataLogging();
+        stopRadialLogging();
+        
         exit(0);
     }
     
     // Record the current generation
     logGeneration();
+    logRadialGeneration();
 	
 	// Render the same generation
 	render();
@@ -730,6 +779,95 @@ void ca4Dbase::stopDataLogging()
     }
 }
 
+void ca4Dbase::startRadialLogging()
+{
+    radialFile = fopen("ca4d_radial.csv", "w");
+
+    if (!radialFile)
+    {
+        fprintf(stderr, "Cannot create radial CSV file\n");
+        exit(1);
+    }
+
+    fprintf(radialFile,
+        "generation,radius,active_cells,total_cells,density\n");
+}
+
+void ca4Dbase::logRadialGeneration()
+{
+    const int L = space->extents[0];
+    const double centre = (L - 1) / 2.0;
+
+    // More than enough bins for the maximum 4D radius
+    const int bins = 2 * L + 1;
+
+    int* active = new int[bins]();
+    int* total  = new int[bins]();
+
+    int ordinates[4];
+
+    for (int x = 0; x < L; x++)
+    for (int y = 0; y < L; y++)
+    for (int z = 0; z < L; z++)
+    for (int w = 0; w < L; w++)
+    {
+        ordinates[0] = x;
+        ordinates[1] = y;
+        ordinates[2] = z;
+        ordinates[3] = w;
+
+        // Distance from the centre in each dimension
+        double dx = fabs(x - centre);
+        double dy = fabs(y - centre);
+        double dz = fabs(z - centre);
+        double dw = fabs(w - centre);
+
+        // Account for periodic boundaries
+        dx = std::min(dx, L - dx);
+        dy = std::min(dy, L - dy);
+        dz = std::min(dz, L - dz);
+        dw = std::min(dw, L - dw);
+
+        // Four-dimensional radial distance
+        double radius = sqrt(
+            dx*dx + dy*dy + dz*dz + dw*dw
+        );
+
+        // Assign to a radial shell of width 1
+        int r = static_cast<int>(floor(radius));
+
+        total[r]++;
+
+        if (space->getCell(ordinates) == 1)
+            active[r]++;
+    }
+
+    // Write results
+    for (int r = 0; r < bins; r++)
+    {
+        if (total[r] == 0)
+            continue;
+
+        double density =
+            static_cast<double>(active[r]) / total[r];
+
+        fprintf(radialFile, "%d,%d,%d,%d,%.8f\n",
+                turn, r, active[r], total[r], density);
+    }
+
+    delete[] active;
+    delete[] total;
+}
+
+void ca4Dbase::stopRadialLogging()
+{
+    if (radialFile)
+    {
+        fclose(radialFile);
+        radialFile = nullptr;
+    }
+}
+
 void ca4Dbase::render()
 {
 	color* custom;
@@ -877,11 +1015,12 @@ int ca4Dbase::run(int argc, char **argv)
     ca4Dglobal::CurrentCA = this;
 
     initglut(argc, argv);
-    initspace15(size, wrap);
+    initspace16(size, wrap);
     initgraphics();
     initcamera();
 
     startDataLogging();
+    startRadialLogging();
     startRecording();
 
     glutMainLoop();
