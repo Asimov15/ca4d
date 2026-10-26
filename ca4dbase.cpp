@@ -1,5 +1,9 @@
 #include "shared.h"
 
+// This is for directly outputing to an mp4
+#include <cstdio>
+#include <cstdlib>
+
 ca4Dbase* ca4Dglobal::CurrentCA;
 
 ca4Dbase::ca4Dbase(unsigned int size, bool wrap)
@@ -19,7 +23,8 @@ void ca4Dbase::initglut(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH); //set the display to Double buffer, with depth
-	glutInitWindowSize(2000, 1000); //set the window size
+	// glutInitWindowSize(2000, 1000); //set the window size
+	glutInitWindowSize(VIDEO_WIDTH, VIDEO_HEIGHT);
 	glutInitWindowPosition(0, 0); //set the position of the window
 	glutCreateWindow("4 D Cellular Automaton"); //the caption of the window
 	glutDisplayFunc(ca4Dglobal::taketurn); //use the display function to draw everything
@@ -403,6 +408,42 @@ void ca4Dbase::initspace14(unsigned int size, bool wrap)
 	space->swap();	
 }
 
+void ca4Dbase::initspace15(unsigned int size, bool wrap)
+{
+	int* extents = new int[4];
+	int i,j,k,l;	  
+	int ordinates[4];
+	int middle, width;
+	
+	middle = (int) size / 2;
+	width = 1;
+	extents[0] = size;
+	extents[1] = size;
+	extents[2] = size;
+	extents[3] = size;
+	space = new spaceNd(4,extents , wrap);			
+	
+	for (i = middle - width; i < middle + width ; i++)
+	{		
+		for (j = middle - width; j < middle + width ; j++)
+		{		
+			for (k = middle - width; k < middle + width ; k++)
+			{		
+				for (l = middle - width; l < middle + width ; l++)
+				{		
+					ordinates[0] = i;
+					ordinates[1] = j;
+					ordinates[2] = k;
+					ordinates[3] = l;					
+					space->setCell(ordinates, 1);				
+				}
+			}
+		}
+	}
+	space->swap();	
+}
+
+
 void ca4Dbase::initspace6(unsigned int size, bool wrap)
 {
 	int* extents = new int[4]; 
@@ -515,6 +556,19 @@ void ca4Dbase::initcamera()
 
 void ca4Dbase::taketurn()
 {
+	
+	// for outputing as mp4
+	if (turn >= VIDEO_GENERATIONS)
+    {
+        stopRecording();
+        stopDataLogging();
+        exit(0);
+    }
+    
+    // Record the current generation
+    logGeneration();
+	
+	// Render the same generation
 	render();
 	
 	turn++;
@@ -561,6 +615,121 @@ void drawString4D(void * font, char *s, float x, float y, float z){
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
 	(std::ostringstream() << std::dec << x)).str()
 
+// This is for directly outputing to an mp4
+void ca4Dbase::startRecording()
+{
+    const char* command =
+        "ffmpeg -y "
+        "-f rawvideo "
+        "-pixel_format rgb24 "
+        "-video_size 800x600 "
+        "-framerate 5 "
+        "-i pipe:0 "
+        "-vf vflip "
+        "-c:v libx264 "
+        "-r 30 "
+        "-pix_fmt yuv420p "
+        "-crf 18 "
+        "ca4d.mp4";
+
+    videoPipe = popen(command, "w");
+
+    if (!videoPipe)
+    {
+        fprintf(stderr, "Unable to start FFmpeg\n");
+        exit(1);
+    }
+}
+
+void ca4Dbase::recordFrame()
+{
+    const size_t bufferSize =
+        VIDEO_WIDTH * VIDEO_HEIGHT * 3;
+
+    unsigned char* pixels = new unsigned char[bufferSize];
+
+    glFinish();
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadBuffer(GL_BACK);
+
+    glReadPixels(
+        0, 0,
+        VIDEO_WIDTH,
+        VIDEO_HEIGHT,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        pixels
+    );
+
+    size_t bytes = fwrite(
+        pixels,
+        1,
+        bufferSize,
+        videoPipe
+    );
+
+    delete[] pixels;
+
+    if (bytes != bufferSize)
+    {
+        fprintf(stderr, "Error writing video frame\n");
+        exit(1);
+    }
+}
+
+void ca4Dbase::stopRecording()
+{
+    if (videoPipe != nullptr)
+    {
+        int result = pclose(videoPipe);
+        videoPipe = nullptr;
+
+        if (result != 0)
+        {
+            fprintf(stderr, "FFmpeg reported an error\n");
+        }
+    }
+}
+
+void ca4Dbase::startDataLogging()
+{
+    dataFile = fopen("ca4d.csv", "w");
+
+    if (!dataFile)
+    {
+        fprintf(stderr, "Unable to create ca4d.csv\n");
+        exit(1);
+    }
+
+    fprintf(dataFile, "generation,active_cells,percentage\n");
+}
+
+void ca4Dbase::logGeneration()
+{
+    int activeCount = 0;
+
+    for (int i = 0; i < space->matrixSize; i++)
+    {
+        if (space->getCell(i) == 1)
+            activeCount++;
+    }
+
+    double percentage =
+        100.0 * activeCount / space->matrixSize;
+
+    fprintf(dataFile, "%d,%d,%.6f\n",
+            turn, activeCount, percentage);
+}
+
+void ca4Dbase::stopDataLogging()
+{
+    if (dataFile)
+    {
+        fclose(dataFile);
+        dataFile = nullptr;
+    }
+}
+
 void ca4Dbase::render()
 {
 	color* custom;
@@ -601,6 +770,8 @@ void ca4Dbase::render()
 					if (space->getCell(ordinates) == 1)
 						count++;
 				}
+				if (count == 0)
+					continue;
 				// ordinates[3] = space->extents[3] / 2;
 
 				// unsigned char state = space->getCell(ordinates);
@@ -633,8 +804,13 @@ void ca4Dbase::render()
 	//const char* sstr = str.c_str();
 	//drawString4D(GLUT_BITMAP_HELVETICA_18, (char*)sstr, 3, 3, 3);
 
-	glutSwapBuffers(); //swap the buffers     
-	usleep(1000000);
+	//glutSwapBuffers(); //swap the buffers     
+	//usleep(1000000);
+	
+	// output to mp4 file
+	recordFrame();
+	glutSwapBuffers();
+	
 }
 
 
@@ -698,15 +874,19 @@ void ca4Dbase::keyboard(unsigned char key, int x, int y)
 
 int ca4Dbase::run(int argc, char **argv)
 {
-	ca4Dglobal::CurrentCA = this;
+    ca4Dglobal::CurrentCA = this;
 
-	initglut(argc, argv);
-	initspace14(size, wrap);
-	initgraphics();
-	initcamera();
+    initglut(argc, argv);
+    initspace15(size, wrap);
+    initgraphics();
+    initcamera();
 
-	glutMainLoop(); //call the main loop
-	return 0;
+    startDataLogging();
+    startRecording();
+
+    glutMainLoop();
+
+    return 0;
 }
 
 //void ca4Dbase::start()
